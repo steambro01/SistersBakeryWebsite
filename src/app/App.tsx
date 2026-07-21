@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Admin from "./Admin";
 
 const BUSINESS_NAME = "Sweet by Sophie";
 const SPECIALTY_FORM_URL = "https://forms.google.com";
@@ -88,7 +89,7 @@ const allItems = [
   },
 ];
 
-export default function App() {
+function Home() {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -272,4 +273,35 @@ export default function App() {
       </footer>
     </div>
   );
+}
+
+export default function App() {
+  const [currentPage, setCurrentPage] = useState<"home" | "admin">("home");
+
+  // Check if user is trying to access admin via URL or keyboard shortcut
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Admin access: Ctrl+Alt+A or Cmd+Alt+A
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === "a") {
+        e.preventDefault();
+        setCurrentPage("admin");
+      }
+      // Return home: Escape key when on admin page
+      if (e.key === "Escape" && currentPage === "admin") {
+        setCurrentPage("home");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [currentPage]);
+
+  // Also check URL hash for direct admin access
+  useEffect(() => {
+    if (window.location.hash === "#admin") {
+      setCurrentPage("admin");
+    }
+  }, []);
+
+  return currentPage === "admin" ? <Admin /> : <Home />;
 }
